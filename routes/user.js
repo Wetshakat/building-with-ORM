@@ -69,6 +69,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
 router.get('/users', async (req, res) => {
   try {
     const users = await User.findAll({
@@ -77,6 +78,25 @@ router.get('/users', async (req, res) => {
     res.json(users);
   } catch (err) {
     console.error('Error fetching users:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+router.get('/email/:email', async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const user = await User.findOne({
+      where: { email },
+      attributes: ['id', 'username', 'email', 'createdAt', 'updatedAt']
+    });
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json(user);
+  } catch (err) {
+    console.error(`Error fetching user with email ${email}:`, err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -104,7 +124,6 @@ router.delete('/users/:id', auth, async (req, res) => {
   const { id } = req.params;
 
   try {
-    
     if (parseInt(id) !== req.user.id) {
       return res.status(403).json({ error: 'Unauthorized to delete this user' });
     }
